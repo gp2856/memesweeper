@@ -86,8 +86,10 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos) const
 
 Memefield::Memefield(const int n_memes)
 {
+	// Make sure we are spawning a valid number of memes
 	assert(n_memes > 0 && n_memes < width * height);
-
+	
+	// Generate a random X and Y given the boundaries of the field
 	std::random_device rd;
 	std::mt19937 rng(rd());
 	const std::uniform_int_distribution<int> x_dist(0, width - 1);
@@ -108,8 +110,19 @@ Memefield::Memefield(const int n_memes)
 	}
 }
 
+RectI Memefield::get_rect() const
+{
+	return RectI(0, width * 16, 0, height * 16);
+}
+
 void Memefield::draw(Graphics & gfx) const
 {
+	// Get the rectangle of the field
+	const RectI background = get_rect();
+	// Draw the background of the field
+	gfx.DrawRect(background, SpriteCodex::baseColor);
+
+	// Draw each tile on top of the background
 	for(auto y = 0; y < height; y++)
 	{
 		for(auto x = 0; x < width; x++)
