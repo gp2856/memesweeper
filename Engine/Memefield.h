@@ -54,6 +54,7 @@ private:
 	// Dimensions of the grid
 	static constexpr int width = 20;
 	static constexpr int height = 14;
+	static constexpr int tile_size = 16;
 
 	// Tile array
 	Tile field_[width*height];

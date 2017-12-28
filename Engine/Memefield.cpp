@@ -84,6 +84,11 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos) const
 	}
 }
 
+const int Memefield::Tile::get_size() const
+{
+	return size_;
+}
+
 Memefield::Memefield(const int n_memes)
 {
 	// Make sure we are spawning a valid number of memes
@@ -112,7 +117,7 @@ Memefield::Memefield(const int n_memes)
 
 RectI Memefield::get_rect() const
 {
-	return RectI(0, width * 16, 0, height * 16);
+	return RectI(0, width * tile_size, 0, height * tile_size);
 }
 
 void Memefield::draw(Graphics & gfx) const
@@ -127,7 +132,7 @@ void Memefield::draw(Graphics & gfx) const
 	{
 		for(auto x = 0; x < width; x++)
 		{
-			tile_at({ x,y }).draw(gfx, {x * 16, y * 16});
+			tile_at({ x,y }).draw(gfx, {x * tile_size, y * tile_size});
 		}
 	}
 }
