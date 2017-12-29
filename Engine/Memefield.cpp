@@ -151,6 +151,18 @@ Memefield::Memefield(const int n_memes)
 			tile_at(new_loc).spawn_meme();
 		}
 	}
+
+	// Set neighbor memes for every tile on the board that does not have a meme
+	for (auto y = 0; y < height; y++)
+	{
+		for (auto x = 0; x < width; x++)
+		{
+			if (!tile_at({ x,y }).has_meme())
+			{
+				tile_at({ x,y }).set_neighbor_meme_count(count_neighbor_memes({ x,y }));
+			}
+		}
+	}
 }
 
 void Memefield::on_reveal_click(const Vei2 & screen_pos)
