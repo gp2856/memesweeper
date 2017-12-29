@@ -37,23 +37,24 @@ void Memefield::Tile::reveal()
 	}
 }
 
-void Memefield::Tile::set_neighbor_meme_count(int meme_count)
+void Memefield::Tile::set_neighbor_meme_count(const int meme_count)
 {
 	assert(n_neighbor_memes_ == -1);
+	n_neighbor_memes_ = meme_count;
 
 }
 
-bool Memefield::Tile::is_revealed()
+bool Memefield::Tile::is_revealed() const
 {
 	return state_ == State::kRevealed;
 }
 
-bool Memefield::Tile::is_flagged()
+bool Memefield::Tile::is_flagged() const
 {
 	return state_ == State::kFlagged;
 }
 
-bool Memefield::Tile::has_meme()
+bool Memefield::Tile::has_meme() const
 {
 	return has_meme_;
 }
@@ -116,15 +117,27 @@ void Memefield::on_reveal_click(const Vei2 & screen_pos)
 {
 	const Vei2 grid_pos = screen_to_grid(screen_pos);
 
-	// Make sure grid_pos is a valid tile
-	assert(grid_pos.x > 0 && grid_pos.x <= width &&
-		grid_pos.y > 0 && grid_pos.y <= height);
-
-	if(!tile_at(grid_pos).is_revealed())
+	// If player clicked inside the grid and the tile is not already revealed,
+	// reveal the tile.
+	if (tile_is_in_grid(grid_pos))
 	{
-		tile_at(grid_pos).reveal();
+		if (!tile_at(grid_pos).is_revealed())
+		{
+			tile_at(grid_pos).reveal();
+		}
 	}
 
+}
+
+void Memefield::on_flag_click(const Vei2 & screen_pos)
+{
+	const Vei2 grid_pos = screen_to_grid(screen_pos);
+
+	// If the tile is on the grid and it is not currently revealed, toggle the flag
+	if(tile_is_in_grid(grid_pos) && !tile_at(grid_pos).is_revealed())
+	{
+		tile_at(grid_pos).toggle_flag();
+	}
 }
 
 RectI Memefield::get_rect() const
@@ -162,4 +175,10 @@ const Memefield::Tile & Memefield::tile_at(const Vei2 & grid_pos) const
 Vei2 Memefield::screen_to_grid(const Vei2 & screen_pos) const
 {
 	return {screen_pos.x / tile_size, screen_pos.y / tile_size};
+}
+
+bool Memefield::tile_is_in_grid(const Vei2 & grid_pos) const
+{
+	return grid_pos.x > 0 && grid_pos.x <= width - 1 &&
+		grid_pos.y > 0 && grid_pos.y <= height - 1;
 }

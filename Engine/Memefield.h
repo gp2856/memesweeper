@@ -22,9 +22,9 @@ private:
 		void set_neighbor_meme_count(const int meme_count);
 
 		// Flags
-		bool is_revealed();
-		bool is_flagged();
-		bool has_meme();
+		bool is_revealed() const;
+		bool is_flagged() const;
+		bool has_meme() const;
 
 		// Misc
 		void draw(Graphics& gfx, const Vei2 screen_pos) const;
@@ -50,6 +50,8 @@ private:
 	Tile & tile_at(const Vei2& grid_pos);
 	const Tile& tile_at(const Vei2& grid_pos) const;
 	Vei2 screen_to_grid(const Vei2& screen_pos) const;
+
+	bool tile_is_in_grid(const Vei2& grid_pos) const;
 
 private:
 	// Dimensions of the grid

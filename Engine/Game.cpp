@@ -48,6 +48,12 @@ void Game::UpdateModel()
 			const Vei2 mouse_pos = wnd.mouse.GetPos();
 			field_.on_reveal_click(mouse_pos);
 		}
+
+		if(e.GetType() == Mouse::Event::Type::RPress)
+		{
+			const Vei2 mouse_pos = wnd.mouse.GetPos();
+			field_.on_flag_click(mouse_pos);
+		}
 	}
 }
 
