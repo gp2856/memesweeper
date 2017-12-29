@@ -59,29 +59,69 @@ bool Memefield::Tile::has_meme() const
 	return has_meme_;
 }
 
-void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos) const
+void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fucked) const
 {
-	switch(state_)
+	if (!fucked)
 	{
-	case State::kHidden:
-		SpriteCodex::DrawTileButton(screen_pos, gfx);
-		break;
-	case State::kFlagged:
-		SpriteCodex::DrawTileButton(screen_pos, gfx);
-		SpriteCodex::DrawTileFlag(screen_pos, gfx);
-		break;
-	case State::kRevealed:
-		if(has_meme_)
+		switch (state_)
 		{
-			SpriteCodex::DrawTileBomb(screen_pos, gfx);
+		case State::kHidden:
+			SpriteCodex::DrawTileButton(screen_pos, gfx);
+			break;
+		case State::kFlagged:
+			SpriteCodex::DrawTileButton(screen_pos, gfx);
+			SpriteCodex::DrawTileFlag(screen_pos, gfx);
+			break;
+		case State::kRevealed:
+			if (has_meme_)
+			{
+				SpriteCodex::DrawTileBomb(screen_pos, gfx);
+			}
+			else
+			{
+				SpriteCodex::DrawTile0(screen_pos, gfx);
+			}
+			break;
+		default:
+			break;
 		}
-		else
+	}
+	else
+	{
+		switch (state_)
 		{
-			SpriteCodex::DrawTile0(screen_pos, gfx);
+		case State::kHidden:
+			if(has_meme_)
+			{
+				SpriteCodex::DrawTileBomb(screen_pos, gfx);
+			}
+			else
+			{
+				SpriteCodex::DrawTileButton(screen_pos, gfx);
+			}
+			break;
+		case State::kFlagged:
+			if (has_meme_)
+			{
+				SpriteCodex::DrawTileBomb(screen_pos, gfx);
+				SpriteCodex::DrawTileFlag(screen_pos, gfx);
+			}
+			else
+			{
+				SpriteCodex::DrawTileBomb(screen_pos, gfx);
+				SpriteCodex::DrawTileCross(screen_pos, gfx);
+			}
+			break;
+		case State::kRevealed:
+			if (has_meme_)
+			{
+				SpriteCodex::DrawTileBombRed(screen_pos, gfx);
+			}
+			else
+			{
+				SpriteCodex::DrawTile0(screen_pos, gfx);
+			}
 		}
-		break;
-	default:
-		break;
 	}
 }
 
@@ -115,15 +155,23 @@ Memefield::Memefield(const int n_memes)
 
 void Memefield::on_reveal_click(const Vei2 & screen_pos)
 {
-	const Vei2 grid_pos = screen_to_grid(screen_pos);
-
-	// If player clicked inside the grid and the tile is not already revealed,
-	// reveal the tile.
-	if (tile_is_in_grid(grid_pos))
+	if (!fucked_)
 	{
-		if (!tile_at(grid_pos).is_revealed())
+		const Vei2 grid_pos = screen_to_grid(screen_pos);
+
+		// If player clicked inside the grid and the tile is not already revealed,
+		// reveal the tile.
+		if (tile_is_in_grid(grid_pos))
 		{
-			tile_at(grid_pos).reveal();
+			if (!tile_at(grid_pos).is_revealed())
+			{
+				tile_at(grid_pos).reveal();
+
+				if (tile_at(grid_pos).has_meme())
+				{
+					fucked_ = true;
+				}
+			}
 		}
 	}
 
@@ -131,12 +179,15 @@ void Memefield::on_reveal_click(const Vei2 & screen_pos)
 
 void Memefield::on_flag_click(const Vei2 & screen_pos)
 {
-	const Vei2 grid_pos = screen_to_grid(screen_pos);
-
-	// If the tile is on the grid and it is not currently revealed, toggle the flag
-	if(tile_is_in_grid(grid_pos) && !tile_at(grid_pos).is_revealed())
+	if (!fucked_)
 	{
-		tile_at(grid_pos).toggle_flag();
+		const Vei2 grid_pos = screen_to_grid(screen_pos);
+
+		// If the tile is on the grid and it is not currently revealed, toggle the flag
+		if (tile_is_in_grid(grid_pos) && !tile_at(grid_pos).is_revealed())
+		{
+			tile_at(grid_pos).toggle_flag();
+		}
 	}
 }
 
@@ -152,14 +203,16 @@ void Memefield::draw(Graphics & gfx) const
 	// Draw the background of the field
 	gfx.DrawRect(background, SpriteCodex::baseColor);
 
+
 	// Draw each tile on top of the background
-	for(auto y = 0; y < height; y++)
+	for (auto y = 0; y < height; y++)
 	{
-		for(auto x = 0; x < width; x++)
+		for (auto x = 0; x < width; x++)
 		{
-			tile_at({ x,y }).draw(gfx, {x * tile_size, y * tile_size});
+			tile_at({ x,y }).draw(gfx, { x * tile_size, y * tile_size }, fucked_);
 		}
 	}
+
 }
 
 Memefield::Tile & Memefield::tile_at(const Vei2 & grid_pos)

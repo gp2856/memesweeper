@@ -27,7 +27,7 @@ private:
 		bool has_meme() const;
 
 		// Misc
-		void draw(Graphics& gfx, const Vei2 screen_pos) const;
+		void draw(Graphics& gfx, const Vei2 screen_pos, const bool fucked) const;
 
 	private:
 		bool has_meme_ = false;
@@ -63,5 +63,5 @@ private:
 	Tile field_[width*height];
 
 	// Flags
-	bool fucked = false;
+	bool fucked_ = false;
 };
