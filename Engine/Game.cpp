@@ -25,7 +25,7 @@ Game::Game(MainWindow& wnd)
 	:
 	wnd(wnd),
 	gfx(wnd),
-	field_(10)
+	field_(16)
 {
 }
 
@@ -39,6 +39,16 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
+	while(!wnd.mouse.IsEmpty())
+	{
+		const Mouse::Event e = wnd.mouse.Read();
+
+		if(e.GetType() == Mouse::Event::Type::LPress)
+		{
+			const Vei2 mouse_pos = wnd.mouse.GetPos();
+			field_.on_reveal_click(mouse_pos);
+		}
+	}
 }
 
 void Game::ComposeFrame()

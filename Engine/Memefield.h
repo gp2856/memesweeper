@@ -39,7 +39,7 @@ public:
 	Memefield(int n_memes);
 	
 	// Mouse Events
-	void on_reveal_click(const Vei2& grid_pos);
+	void on_reveal_click(const Vei2& screen_pos);
 	void on_flag_click(const Vei2& screen_pos);
 
 	// Misc
@@ -49,6 +49,7 @@ public:
 private:
 	Tile & tile_at(const Vei2& grid_pos);
 	const Tile& tile_at(const Vei2& grid_pos) const;
+	Vei2 screen_to_grid(const Vei2& screen_pos) const;
 
 private:
 	// Dimensions of the grid

@@ -84,10 +84,7 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos) const
 	}
 }
 
-const int Memefield::Tile::get_size() const
-{
-	return size_;
-}
+
 
 Memefield::Memefield(const int n_memes)
 {
@@ -113,6 +110,21 @@ Memefield::Memefield(const int n_memes)
 			tile_at(new_loc).spawn_meme();
 		}
 	}
+}
+
+void Memefield::on_reveal_click(const Vei2 & screen_pos)
+{
+	const Vei2 grid_pos = screen_to_grid(screen_pos);
+
+	// Make sure grid_pos is a valid tile
+	assert(grid_pos.x > 0 && grid_pos.x <= width &&
+		grid_pos.y > 0 && grid_pos.y <= height);
+
+	if(!tile_at(grid_pos).is_revealed())
+	{
+		tile_at(grid_pos).reveal();
+	}
+
 }
 
 RectI Memefield::get_rect() const
@@ -145,4 +157,9 @@ Memefield::Tile & Memefield::tile_at(const Vei2 & grid_pos)
 const Memefield::Tile & Memefield::tile_at(const Vei2 & grid_pos) const
 {
 	return field_[grid_pos.x + grid_pos.y * width];
+}
+
+Vei2 Memefield::screen_to_grid(const Vei2 & screen_pos) const
+{
+	return {screen_pos.x / tile_size, screen_pos.y / tile_size};
 }
