@@ -50,7 +50,7 @@ private:
 	Tile & tile_at(const Vei2& grid_pos);
 	const Tile& tile_at(const Vei2& grid_pos) const;
 	Vei2 screen_to_grid(const Vei2& screen_pos) const;
-
+	int count_neighbor_memes(const Vei2& grid_pos);
 	bool tile_is_in_grid(const Vei2& grid_pos) const;
 
 private:

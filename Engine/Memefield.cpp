@@ -230,6 +230,27 @@ Vei2 Memefield::screen_to_grid(const Vei2 & screen_pos) const
 	return {screen_pos.x / tile_size, screen_pos.y / tile_size};
 }
 
+int Memefield::count_neighbor_memes(const Vei2 & grid_pos)
+{
+	const int x_start = std::max(0, grid_pos.x - 1);
+	const int y_start = std::max(0, grid_pos.y - 1);
+	const int x_end = std::min(width - 1, grid_pos.x + 1);
+	const int y_end = std::min(height - 1, grid_pos.y + 1);
+
+	auto count = 0;
+	for (Vei2 index = { x_start, y_start }; index.y <= y_end; index.y++)
+	{
+		for(index.x = x_start; index.x <= x_end; index.x++)
+		{
+			if(tile_at(index).has_meme())
+			{
+				count++;
+			}
+		}
+	}
+	return count;
+}
+
 bool Memefield::tile_is_in_grid(const Vei2 & grid_pos) const
 {
 	return grid_pos.x > 0 && grid_pos.x <= width - 1 &&
