@@ -59,6 +59,11 @@ bool memefield::Tile::has_meme() const
 	return has_meme_;
 }
 
+bool memefield::Tile::has_no_neighbor_memes() const
+{
+	return n_neighbor_memes_ == 0;
+}
+
 void memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const memefield::state field_state) const
 {
 	if (field_state != memefield::state::fucked)
@@ -174,22 +179,7 @@ void memefield::on_reveal_click(const Vei2 & screen_pos)
 	{
 		assert(screen_pos.x >= top_left_.x && screen_pos.y >= top_left_.y);
 		const Vei2 grid_pos = screen_to_grid(screen_pos);
-
-		// If the tile is not already revealed,
-		// reveal the tile.
-		if (!tile_at(grid_pos).is_revealed() && !tile_at(grid_pos).is_flagged())
-		{
-			tile_at(grid_pos).reveal();
-
-			if (tile_at(grid_pos).has_meme())
-			{
-				state_ = state::fucked;
-			}
-			else if(check_win())
-			{
-				state_ = state::winrar;
-			}
-		}
+		reveal_tile(grid_pos);
 	}
 
 }
@@ -273,6 +263,46 @@ int memefield::count_neighbor_memes(const Vei2 & grid_pos)
 		}
 	}
 	return count;
+}
+
+
+
+void memefield::reveal_tile(const Vei2& grid_pos)
+{
+	
+
+	// If the tile is not already revealed,
+	// reveal the tile.
+	Tile& tile = tile_at(grid_pos);
+	if (!tile.is_revealed() && !tile.is_flagged())
+	{
+		tile.reveal();
+
+		if (tile.has_meme())
+		{
+			state_ = state::fucked;
+		}
+		else if (check_win())
+		{
+			state_ = state::winrar;
+		}
+		else if(tile.has_no_neighbor_memes())
+		{
+			const int x_start = std::max(0, grid_pos.x - 1);
+			const int y_start = std::max(0, grid_pos.y - 1);
+			const int x_end = std::min(width - 1, grid_pos.x + 1);
+			const int y_end = std::min(height - 1, grid_pos.y + 1);
+
+			
+			for (Vei2 index = { x_start, y_start }; index.y <= y_end; index.y++)
+			{
+				for (index.x = x_start; index.x <= x_end; index.x++)
+				{
+					reveal_tile(index);
+				}
+			}
+		}
+	}
 }
 
 bool memefield::check_win()

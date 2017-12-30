@@ -32,6 +32,7 @@ private:
 		bool is_revealed() const;
 		bool is_flagged() const;
 		bool has_meme() const;
+		bool has_no_neighbor_memes() const;
 
 		// Misc
 		void draw(Graphics& gfx, const Vei2 screen_pos, const memefield::state game_state) const;
@@ -61,7 +62,7 @@ private:
 	const Tile& tile_at(const Vei2& grid_pos) const;
 	Vei2 screen_to_grid(const Vei2& screen_pos) const;
 	int count_neighbor_memes(const Vei2& grid_pos);
-	bool tile_is_in_grid(const Vei2& grid_pos) const;
+	void reveal_tile(const Vei2& grid_pos);
 	
 
 private:

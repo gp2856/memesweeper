@@ -26,7 +26,7 @@ Game::Game(MainWindow& wnd)
 	:
 	wnd(wnd),
 	gfx(wnd),
-	field_(gfx.GetRect().GetCenter(), 1)
+	field_(gfx.GetRect().GetCenter(), 40)
 {
 }
 
