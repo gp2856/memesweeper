@@ -2,17 +2,24 @@
 #include "Graphics.h"
 #include "Vei2.h"
 
-class Memefield
+class memefield
 {
+public:
+	enum class state
+	{
+		fucked,
+		winrar,
+		memeing
+	};
 private:
 	class Tile
 	{
 	public:
-		enum class State
+		enum class state
 		{
-			kHidden,
-			kFlagged,
-			kRevealed
+			hidden,
+			flagged,
+			revealed
 		};
 	public:
 		// Tile management
@@ -27,16 +34,16 @@ private:
 		bool has_meme() const;
 
 		// Misc
-		void draw(Graphics& gfx, const Vei2 screen_pos, const bool fucked, const bool winrar) const;
+		void draw(Graphics& gfx, const Vei2 screen_pos, const memefield::state game_state) const;
 
 	private:
 		bool has_meme_ = false;
 		int n_neighbor_memes_ = -1;
-		State state_ = State::kHidden;
+		state state_ = state::hidden;
 	};
 
 public:
-	Memefield(int n_memes);
+	memefield(const Vei2& pos, int n_memes);
 	
 	// Mouse Events
 	void on_reveal_click(const Vei2& screen_pos);
@@ -45,6 +52,9 @@ public:
 	// Misc
 	RectI get_rect() const;
 	void draw(Graphics& gfx) const;
+	state get_state() const;
+
+	bool check_win();
 
 private:
 	Tile & tile_at(const Vei2& grid_pos);
@@ -52,19 +62,17 @@ private:
 	Vei2 screen_to_grid(const Vei2& screen_pos) const;
 	int count_neighbor_memes(const Vei2& grid_pos);
 	bool tile_is_in_grid(const Vei2& grid_pos) const;
-	bool check_win();
+	
 
 private:
 	// Dimensions of the grid
-	static constexpr int width = 20;
+	static constexpr int width = 14;
 	static constexpr int height = 14;
 	static constexpr int tile_size = 16;
-	const Vei2 pos = { Graphics::ScreenWidth/2 - width * tile_size / 2, Graphics::ScreenHeight/2 - height * tile_size /2 };
+	const Vei2 top_left_;
 
 	// Tile array
 	Tile field_[width*height];
 
-	// Flags
-	bool fucked_ = false;
-	bool winrar_ = false;
+	state state_ = state::memeing;
 };

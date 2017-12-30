@@ -20,12 +20,13 @@
  ******************************************************************************************/
 #include "MainWindow.h"
 #include "Game.h"
+#include "SpriteCodex.h"
 
 Game::Game(MainWindow& wnd)
 	:
 	wnd(wnd),
 	gfx(wnd),
-	field_(16)
+	field_(gfx.GetRect().GetCenter(), 1)
 {
 }
 
@@ -43,21 +44,37 @@ void Game::UpdateModel()
 	{
 		const Mouse::Event e = wnd.mouse.Read();
 
-		if(e.GetType() == Mouse::Event::Type::LPress)
+		// Process events only if we are memeing
+		if (field_.get_state() == memefield::state::memeing)
 		{
-			const Vei2 mouse_pos = wnd.mouse.GetPos();
-			field_.on_reveal_click(mouse_pos);
-		}
+			if (e.GetType() == Mouse::Event::Type::LPress)
+			{
+				const Vei2 mouse_pos = wnd.mouse.GetPos();
+				if (field_.get_rect().Contains(mouse_pos))
+				{
+					field_.on_reveal_click(mouse_pos);
+				}
+			}
 
-		if(e.GetType() == Mouse::Event::Type::RPress)
-		{
-			const Vei2 mouse_pos = wnd.mouse.GetPos();
-			field_.on_flag_click(mouse_pos);
+			if (e.GetType() == Mouse::Event::Type::RPress)
+			{
+				const Vei2 mouse_pos = wnd.mouse.GetPos();
+
+				if (field_.get_rect().Contains(mouse_pos))
+				{
+				field_.on_flag_click(mouse_pos);
+				}
+			}
 		}
 	}
 }
 
 void Game::ComposeFrame()
 {
+	
 	field_.draw(gfx);
+	if (field_.check_win())
+	{
+		SpriteCodex::DrawWin(gfx.GetRect().GetCenter(), gfx);
+	}
 }

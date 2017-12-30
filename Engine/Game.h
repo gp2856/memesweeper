@@ -23,7 +23,7 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "Graphics.h"
-#include "Memefield.h"
+#include "memefield.h"
 
 class Game
 {
@@ -44,5 +44,5 @@ private:
 	/********************************/
 	/*  User Variables              */
 	/********************************/
-	Memefield field_;
+	memefield field_;
 };

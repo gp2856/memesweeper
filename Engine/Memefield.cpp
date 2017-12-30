@@ -1,78 +1,78 @@
-#include "Memefield.h"
+#include "memefield.h"
 #include "SpriteCodex.h"
 #include <assert.h>
 #include <random>
 
-void Memefield::Tile::spawn_meme()
+void memefield::Tile::spawn_meme()
 {
 	assert(!has_meme_);
 	has_meme_ = true;
 }
 
-void Memefield::Tile::toggle_flag()
+void memefield::Tile::toggle_flag()
 {
 	// Cannot flag a revealed tile
-	assert(state_ != State::kRevealed);
+	assert(state_ != state::revealed);
 
 
-	if(state_ == State::kHidden)
+	if(state_ == state::hidden)
 	{
 		// If hidden flag
-		state_ = State::kFlagged;
+		state_ = state::flagged;
 	}
 	else
 	{
 		// If flagged hide
-		state_ = State::kHidden;
+		state_ = state::hidden;
 	}
 }
 
-void Memefield::Tile::reveal()
+void memefield::Tile::reveal()
 {
-	assert(state_ != State::kRevealed);
+	assert(state_ != state::revealed);
 
-	if (state_ == State::kHidden)
+	if (state_ == state::hidden)
 	{
-		state_ = State::kRevealed;
+		state_ = state::revealed;
 	}
 }
 
-void Memefield::Tile::set_neighbor_meme_count(const int meme_count)
+void memefield::Tile::set_neighbor_meme_count(const int meme_count)
 {
 	assert(n_neighbor_memes_ == -1);
 	n_neighbor_memes_ = meme_count;
 
 }
 
-bool Memefield::Tile::is_revealed() const
+bool memefield::Tile::is_revealed() const
 {
-	return state_ == State::kRevealed;
+	return state_ == state::revealed;
 }
 
-bool Memefield::Tile::is_flagged() const
+bool memefield::Tile::is_flagged() const
 {
-	return state_ == State::kFlagged;
+	return state_ == state::flagged;
 }
 
-bool Memefield::Tile::has_meme() const
+bool memefield::Tile::has_meme() const
 {
 	return has_meme_;
 }
 
-void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fucked, const bool winrar) const
+void memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const memefield::state field_state) const
 {
-	if (!fucked && !winrar)
+	if (field_state != memefield::state::fucked)
 	{
 		switch (state_)
 		{
-		case State::kHidden:
+		case state::hidden:
 			SpriteCodex::DrawTileButton(screen_pos, gfx);
 			break;
-		case State::kFlagged:
+		case state::flagged:
 			SpriteCodex::DrawTileButton(screen_pos, gfx);
 			SpriteCodex::DrawTileFlag(screen_pos, gfx);
 			break;
-		case State::kRevealed:
+		case state::revealed:
 			if (has_meme_)
 			{
 				SpriteCodex::DrawTileBomb(screen_pos, gfx);
@@ -86,11 +86,11 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fuc
 			break;
 		}
 	}
-	else
+	else 
 	{
 		switch (state_)
 		{
-		case State::kHidden:
+		case state::hidden:
 			if(has_meme_)
 			{
 				SpriteCodex::DrawTileBomb(screen_pos, gfx);
@@ -100,7 +100,7 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fuc
 				SpriteCodex::DrawTileButton(screen_pos, gfx);
 			}
 			break;
-		case State::kFlagged:
+		case state::flagged:
 			if (has_meme_)
 			{
 				SpriteCodex::DrawTileBomb(screen_pos, gfx);
@@ -112,7 +112,7 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fuc
 				SpriteCodex::DrawTileCross(screen_pos, gfx);
 			}
 			break;
-		case State::kRevealed:
+		case state::revealed:
 			if (has_meme_)
 			{
 				SpriteCodex::DrawTileBombRed(screen_pos, gfx);
@@ -128,7 +128,9 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fuc
 
 
 
-Memefield::Memefield(const int n_memes)
+memefield::memefield(const Vei2& center, const int n_memes)
+	:
+	top_left_(center - Vei2(width * SpriteCodex::tileSize, height * SpriteCodex::tileSize) / 2)
 {
 	// Make sure we are spawning a valid number of memes
 	assert(n_memes > 0 && n_memes < width * height);
@@ -166,56 +168,52 @@ Memefield::Memefield(const int n_memes)
 	}
 }
 
-void Memefield::on_reveal_click(const Vei2 & screen_pos)
+void memefield::on_reveal_click(const Vei2 & screen_pos)
 {
-	if (!fucked_ && !winrar_)
+	if (state_ == state::memeing)
 	{
-		assert(screen_pos.x >= pos.x && screen_pos.y >= pos.y);
+		assert(screen_pos.x >= top_left_.x && screen_pos.y >= top_left_.y);
 		const Vei2 grid_pos = screen_to_grid(screen_pos);
 
-		// If player clicked inside the grid and the tile is not already revealed,
+		// If the tile is not already revealed,
 		// reveal the tile.
-		if (tile_is_in_grid(grid_pos))
+		if (!tile_at(grid_pos).is_revealed() && !tile_at(grid_pos).is_flagged())
 		{
-			if (!tile_at(grid_pos).is_revealed())
+			tile_at(grid_pos).reveal();
+
+			if (tile_at(grid_pos).has_meme())
 			{
-				tile_at(grid_pos).reveal();
-
-				if (tile_at(grid_pos).has_meme())
-				{
-					fucked_ = true;
-				}
+				state_ = state::fucked;
 			}
-		}
-
-		if(check_win())
-		{
-			winrar_ = true;
+			else if(check_win())
+			{
+				state_ = state::winrar;
+			}
 		}
 	}
 
 }
 
-void Memefield::on_flag_click(const Vei2 & screen_pos)
+void memefield::on_flag_click(const Vei2 & screen_pos)
 {
-	if (!fucked_ && !winrar_)
+	if (state_ == state::memeing)
 	{
 		const Vei2 grid_pos = screen_to_grid(screen_pos);
 
-		// If the tile is on the grid and it is not currently revealed, toggle the flag
-		if (tile_is_in_grid(grid_pos) && !tile_at(grid_pos).is_revealed())
+		// If the tile is not currently revealed, toggle the flag
+		if (!tile_at(grid_pos).is_revealed())
 		{
 			tile_at(grid_pos).toggle_flag();
 		}
 	}
 }
 
-RectI Memefield::get_rect() const
+RectI memefield::get_rect() const
 {
-	return RectI(pos.x, pos.x + width * tile_size, pos.y, pos.y + height * tile_size);
+	return RectI(top_left_, width * SpriteCodex::tileSize, height * SpriteCodex::tileSize);
 }
 
-void Memefield::draw(Graphics & gfx) const
+void memefield::draw(Graphics & gfx) const
 {
 	// Get the rectangle of the field
 	const RectI background = get_rect();
@@ -228,36 +226,35 @@ void Memefield::draw(Graphics & gfx) const
 	{
 		for (auto x = 0; x < width; x++)
 		{
-			tile_at({ x,y }).draw(gfx, { x * tile_size + pos.x, y * tile_size + pos.y }, fucked_, winrar_);
+			tile_at({ x,y }).draw(gfx, { x * tile_size + top_left_.x, y * tile_size + top_left_.y }, state_);
 		}
 	}
-
-	if(winrar_)
-	{
-		SpriteCodex::DrawWin({Graphics::ScreenWidth/2, Graphics::ScreenHeight/2}, gfx);
-	}
-
 }
 
-Memefield::Tile & Memefield::tile_at(const Vei2 & grid_pos)
+memefield::state memefield::get_state() const
+{
+	return state_;
+}
+
+memefield::Tile & memefield::tile_at(const Vei2 & grid_pos)
 {
 	return field_[grid_pos.x + grid_pos.y * width];
 }
 
-const Memefield::Tile & Memefield::tile_at(const Vei2 & grid_pos) const
+const memefield::Tile & memefield::tile_at(const Vei2 & grid_pos) const
 {
 	return field_[grid_pos.x + grid_pos.y * width];
 }
 
-Vei2 Memefield::screen_to_grid(const Vei2 & screen_pos) const
+Vei2 memefield::screen_to_grid(const Vei2 & screen_pos) const
 {
 	// Because the grid starts at (0,0), we want to calculate the grid_pos as if
 	// it were starting at screen position (0,0).  To do this, we subtract the origin (offset)
 	// from the screen position, then divide by the tile size
-	return {(screen_pos.x - pos.x) / tile_size, (screen_pos.y - pos.y) / tile_size };
+	return {(screen_pos.x - top_left_.x) / tile_size, (screen_pos.y - top_left_.y) / tile_size };
 }
 
-int Memefield::count_neighbor_memes(const Vei2 & grid_pos)
+int memefield::count_neighbor_memes(const Vei2 & grid_pos)
 {
 	const int x_start = std::max(0, grid_pos.x - 1);
 	const int y_start = std::max(0, grid_pos.y - 1);
@@ -278,28 +275,20 @@ int Memefield::count_neighbor_memes(const Vei2 & grid_pos)
 	return count;
 }
 
-bool Memefield::tile_is_in_grid(const Vei2 & grid_pos) const
-{
-	return grid_pos.x >= 0 && grid_pos.x <= width - 1 &&
-		grid_pos.y >= 0 && grid_pos.y <= height - 1;
-}
-
-bool Memefield::check_win()
+bool memefield::check_win()
 {
 	// Win condition: Every tile that does not have a meme is revealed
 
 	// For every tile in the grid
-	for(auto y = 0; y < height; y++)
+	for (const auto t: field_)
 	{
-		for (auto x = 0; x < width; x++)
+		if ((t.has_meme() && !t.is_flagged()) ||
+			(!t.has_meme() && !t.is_revealed()))
 		{
-			if (!tile_at({ x,y }).is_revealed() && !tile_at({ x,y }).has_meme())
-			{
-				// Return false if we find any tile that does not satisfy the win condition
-				return false;
-			}
+			return false;
 		}
 	}
+
 	// Return true if we finish looping through the grid and we do not find
 	// any unrevealed tiles that aren't memes
 	return true;
