@@ -27,7 +27,7 @@ private:
 		bool has_meme() const;
 
 		// Misc
-		void draw(Graphics& gfx, const Vei2 screen_pos, const bool fucked) const;
+		void draw(Graphics& gfx, const Vei2 screen_pos, const bool fucked, const bool winrar) const;
 
 	private:
 		bool has_meme_ = false;
@@ -52,16 +52,19 @@ private:
 	Vei2 screen_to_grid(const Vei2& screen_pos) const;
 	int count_neighbor_memes(const Vei2& grid_pos);
 	bool tile_is_in_grid(const Vei2& grid_pos) const;
+	bool check_win();
 
 private:
 	// Dimensions of the grid
 	static constexpr int width = 20;
 	static constexpr int height = 14;
 	static constexpr int tile_size = 16;
+	const Vei2 pos = { Graphics::ScreenWidth/2 - width * tile_size / 2, Graphics::ScreenHeight/2 - height * tile_size /2 };
 
 	// Tile array
 	Tile field_[width*height];
 
 	// Flags
 	bool fucked_ = false;
+	bool winrar_ = false;
 };

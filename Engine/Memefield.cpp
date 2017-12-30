@@ -59,9 +59,9 @@ bool Memefield::Tile::has_meme() const
 	return has_meme_;
 }
 
-void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fucked) const
+void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fucked, const bool winrar) const
 {
-	if (!fucked)
+	if (!fucked && !winrar)
 	{
 		switch (state_)
 		{
@@ -79,7 +79,7 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fuc
 			}
 			else
 			{
-				SpriteCodex::DrawTile0(screen_pos, gfx);
+				SpriteCodex::DrawTileNum(screen_pos, gfx, n_neighbor_memes_);
 			}
 			break;
 		default:
@@ -119,7 +119,7 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fuc
 			}
 			else
 			{
-				SpriteCodex::DrawTile0(screen_pos, gfx);
+				SpriteCodex::DrawTileNum(screen_pos, gfx, n_neighbor_memes_);
 			}
 		}
 	}
@@ -163,12 +163,25 @@ Memefield::Memefield(const int n_memes)
 			}
 		}
 	}
+
+	// Win condition test
+	for (auto y = 0; y < height; y++)
+	{
+		for (auto x = 0; x < width; x++)
+		{
+			if (!tile_at({ x,y }).has_meme())
+			{
+				tile_at({ x,y }).reveal();
+			}
+		}
+	}
 }
 
 void Memefield::on_reveal_click(const Vei2 & screen_pos)
 {
-	if (!fucked_)
+	if (!fucked_ && !winrar_)
 	{
+		assert(screen_pos.x >= pos.x && screen_pos.y >= pos.y);
 		const Vei2 grid_pos = screen_to_grid(screen_pos);
 
 		// If player clicked inside the grid and the tile is not already revealed,
@@ -185,13 +198,18 @@ void Memefield::on_reveal_click(const Vei2 & screen_pos)
 				}
 			}
 		}
+
+		if(check_win())
+		{
+			winrar_ = true;
+		}
 	}
 
 }
 
 void Memefield::on_flag_click(const Vei2 & screen_pos)
 {
-	if (!fucked_)
+	if (!fucked_ && !winrar_)
 	{
 		const Vei2 grid_pos = screen_to_grid(screen_pos);
 
@@ -205,7 +223,7 @@ void Memefield::on_flag_click(const Vei2 & screen_pos)
 
 RectI Memefield::get_rect() const
 {
-	return RectI(0, width * tile_size, 0, height * tile_size);
+	return RectI(pos.x, pos.x + width * tile_size, pos.y, pos.y + height * tile_size);
 }
 
 void Memefield::draw(Graphics & gfx) const
@@ -221,7 +239,7 @@ void Memefield::draw(Graphics & gfx) const
 	{
 		for (auto x = 0; x < width; x++)
 		{
-			tile_at({ x,y }).draw(gfx, { x * tile_size, y * tile_size }, fucked_);
+			tile_at({ x,y }).draw(gfx, { x * tile_size + pos.x, y * tile_size + pos.y }, fucked_, winrar_);
 		}
 	}
 
@@ -239,7 +257,10 @@ const Memefield::Tile & Memefield::tile_at(const Vei2 & grid_pos) const
 
 Vei2 Memefield::screen_to_grid(const Vei2 & screen_pos) const
 {
-	return {screen_pos.x / tile_size, screen_pos.y / tile_size};
+	// Because the grid starts at (0,0), we want to calculate the grid_pos as if
+	// it were starting at screen position (0,0).  To do this, we subtract the origin (offset)
+	// from the screen position, then divide by the tile size
+	return {(screen_pos.x - pos.x) / tile_size, (screen_pos.y - pos.y) / tile_size };
 }
 
 int Memefield::count_neighbor_memes(const Vei2 & grid_pos)
@@ -265,6 +286,27 @@ int Memefield::count_neighbor_memes(const Vei2 & grid_pos)
 
 bool Memefield::tile_is_in_grid(const Vei2 & grid_pos) const
 {
-	return grid_pos.x > 0 && grid_pos.x <= width - 1 &&
-		grid_pos.y > 0 && grid_pos.y <= height - 1;
+	return grid_pos.x >= 0 && grid_pos.x <= width - 1 &&
+		grid_pos.y >= 0 && grid_pos.y <= height - 1;
+}
+
+bool Memefield::check_win()
+{
+	// Win condition: Every tile that does not have a meme is revealed
+
+	// For every tile in the grid
+	for(auto y = 0; y < height; y++)
+	{
+		for (auto x = 0; x < width; x++)
+		{
+			if (!tile_at({ x,y }).is_revealed() && !tile_at({ x,y }).has_meme())
+			{
+				// Return false if we find any tile that does not satisfy the win condition
+				return false;
+			}
+		}
+	}
+	// Return true if we finish looping through the grid and we do not find
+	// any unrevealed tiles that aren't memes
+	return true;
 }
