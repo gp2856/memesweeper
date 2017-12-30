@@ -123,6 +123,7 @@ void Memefield::Tile::draw(Graphics & gfx, const Vei2 screen_pos, const bool fuc
 			}
 		}
 	}
+
 }
 
 
@@ -160,18 +161,6 @@ Memefield::Memefield(const int n_memes)
 			if (!tile_at({ x,y }).has_meme())
 			{
 				tile_at({ x,y }).set_neighbor_meme_count(count_neighbor_memes({ x,y }));
-			}
-		}
-	}
-
-	// Win condition test
-	for (auto y = 0; y < height; y++)
-	{
-		for (auto x = 0; x < width; x++)
-		{
-			if (!tile_at({ x,y }).has_meme())
-			{
-				tile_at({ x,y }).reveal();
 			}
 		}
 	}
@@ -241,6 +230,11 @@ void Memefield::draw(Graphics & gfx) const
 		{
 			tile_at({ x,y }).draw(gfx, { x * tile_size + pos.x, y * tile_size + pos.y }, fucked_, winrar_);
 		}
+	}
+
+	if(winrar_)
+	{
+		SpriteCodex::DrawWin({Graphics::ScreenWidth/2, Graphics::ScreenHeight/2}, gfx);
 	}
 
 }
