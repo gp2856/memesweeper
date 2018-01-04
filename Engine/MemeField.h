@@ -39,6 +39,7 @@ private:
 	};
 public:
 	MemeField( const Vei2& center, int width, int height, int nMemes );
+	~MemeField();
 	void Draw( Graphics& gfx ) const;
 	RectI GetRect() const;
 	void OnRevealClick( const Vei2& screenPos );
@@ -59,5 +60,5 @@ private:
 	Sound sndLose = Sound( L"spayed.wav" );
 	Vei2 topLeft;
 	State state = State::Memeing;
-	Tile *field;
+	Tile *field = nullptr;
 };

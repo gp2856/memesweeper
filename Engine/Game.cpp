@@ -71,15 +71,31 @@ void Game::UpdateModel()
 			switch( s )
 			{
 			case SelectionMenu::Size::Small:
-				field = new MemeField(gfx.GetRect().GetCenter(), 7, 8, 4);
-			case SelectionMenu::Size::Medium:
-				field = new MemeField(gfx.GetRect().GetCenter(), 14, 12, 20);
-			case SelectionMenu::Size::Large:
-				field = new MemeField(gfx.GetRect().GetCenter(), 32, 24, 30);
+				CreateField( 7, 8, 4);
 				state = State::Memesweeper;
+				break;
+			case SelectionMenu::Size::Medium:
+				CreateField( 14, 12, 20);
+				state = State::Memesweeper;
+				break;
+			case SelectionMenu::Size::Large:
+				CreateField( 32, 24, 30);
+				state = State::Memesweeper;
+				break;
 			}
 		}
 	}
+}
+
+void Game::CreateField(int width, int height, int n_memes)
+{
+	field = new MemeField(gfx.GetRect().GetCenter(), width, height, n_memes);
+}
+
+void Game::DestroyField()
+{
+	delete field;
+	field = nullptr;
 }
 
 void Game::ComposeFrame()
