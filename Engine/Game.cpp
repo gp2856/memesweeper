@@ -26,7 +26,8 @@ Game::Game(MainWindow& wnd)
 	:
 	wnd(wnd),
 	gfx(wnd),
-	field_(gfx.GetRect().GetCenter(), 40)
+	field_(gfx.GetRect().GetCenter(), 40),
+	snd_fucked_(L"spayed.wav")
 {
 }
 
@@ -53,6 +54,10 @@ void Game::UpdateModel()
 				if (field_.get_rect().Contains(mouse_pos))
 				{
 					field_.on_reveal_click(mouse_pos);
+				}
+				if(field_.get_state() == memefield::state::fucked)
+				{
+					snd_fucked_.Play();
 				}
 			}
 
