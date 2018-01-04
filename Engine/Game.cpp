@@ -64,6 +64,14 @@ void Game::UpdateModel()
 					}
 				}
 			}
+			else
+			{
+				if (e.GetType() == Mouse::Event::Type::LPress)
+				{
+					DestroyField();
+					state = State::SelectionMenu;
+				}
+			}
 		}
 		else
 		{
